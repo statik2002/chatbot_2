@@ -8,6 +8,8 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from google.cloud import dialogflow
 from google.cloud import storage
 
+from create_api_key import authenticate_implicit_with_adc
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
@@ -56,29 +58,6 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
 
     return response.query_result.fulfillment_text
 
-    '''
-    for text in texts:
-        print(text)
-        text_input = dialogflow.TextInput(text=text, language_code=language_code)
-
-        query_input = dialogflow.QueryInput(text=text_input)
-
-        response = session_client.detect_intent(
-            request={"session": session, "query_input": query_input}
-        )
-
-        print("=" * 20)
-        print("Query text: {}".format(response.query_result.query_text))
-        print(
-            "Detected intent: {} (confidence: {})\n".format(
-                response.query_result.intent.display_name,
-                response.query_result.intent_detection_confidence,
-            )
-        )
-
-        return response.query_result.fulfillment_text
-    '''
-
 
 def echo(update: Update, context: CallbackContext) -> None:
 
@@ -91,8 +70,10 @@ def main() -> None:
 
     load_dotenv()
     telegram_token = os.environ['TELEGRAM_TOKEN']
+    google_credenials = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+    project_id = os.environ['GOOGLE_CLOUD_PROJECT_ID']
 
-    #detect_intent_texts('pacific-hybrid-245815', 123456789, 'I know French', 'ru')
+    authenticate_implicit_with_adc(project_id)
 
     updater = Updater(token=telegram_token)
     dispatcher = updater.dispatcher
@@ -100,7 +81,6 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help_command))
 
-    #dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
 
     updater.start_polling()
