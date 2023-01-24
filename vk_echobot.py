@@ -13,11 +13,19 @@ def echo(event, vk_api):
 
     message = detect_intent_texts('pacific-hybrid-245815', 123456789, event.text, 'ru')
 
-    vk_api.messages.send(
-        user_id=event.user_id,
-        message=message,
-        random_id=random.randint(1, 1000)
-    )
+    if message.intent.is_fallback:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message="Я не могу понять ваш вопрос. Ждите оператора.",
+            random_id=random.randint(1, 1000)
+        )
+
+    else:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=message.fulfillment_text,
+            random_id=random.randint(1, 1000)
+        )
 
 
 def main():
