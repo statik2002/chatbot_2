@@ -32,14 +32,20 @@ def create_intent(project_id, display_name, training_phrases_parts, message_text
     print("Intent created: {}".format(response))
 
 
-load_dotenv()
-project_id = os.environ['GOOGLE_CLOUD_PROJECT_ID']
-with open('questions.json', 'r') as intents_file:
-        intents = json.load(intents_file)
+def main() -> None:
+    load_dotenv()
+    project_id = os.environ['GOOGLE_CLOUD_PROJECT_ID']
 
-for intent, phrases in intents.items():
+    with open('questions.json', 'r') as intents_file:
+            intents = json.load(intents_file)
 
-        try:
-            create_intent(project_id, intent, phrases['questions'], phrases['answer'])
-        except :
-            print('Error')
+    for intent, phrases in intents.items():
+
+            try:
+                create_intent(project_id, intent, phrases['questions'], phrases['answer'])
+            except :
+                print(f'{intent} - This Intent already exist.')
+
+
+if __name__ == '__main__':
+    main()

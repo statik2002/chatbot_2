@@ -5,11 +5,7 @@ from dotenv import load_dotenv
 from telegram import Update, ForceReply
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-from google.cloud import dialogflow
-from google.cloud import storage
-
-from create_api_key import authenticate_implicit_with_adc
-from utils import detect_intent_texts
+from utils import detect_intent_texts, authenticate_implicit_with_adc
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -32,16 +28,20 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 def echo(update: Update, context: CallbackContext) -> None:
 
-    message = detect_intent_texts('pacific-hybrid-245815', 123456789, update.message.text, 'ru')
+    session_id = update.message.from_user.id
 
-    update.message.reply_text(message)
+    message = detect_intent_texts(os.environ['GOOGLE_CLOUD_PROJECT_ID'], session_id, update.message.text, 'ru')
+
+    if message.intent.is_fallback:
+        update.message.reply_text('Я не могу понять ваш вопрос. Ждите ответ оператора.')
+    else:
+        update.message.reply_text(message.fulfillment_text)
 
 
 def main() -> None:
 
     load_dotenv()
     telegram_token = os.environ['TELEGRAM_TOKEN']
-    google_credenials = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
     project_id = os.environ['GOOGLE_CLOUD_PROJECT_ID']
 
     authenticate_implicit_with_adc(project_id)

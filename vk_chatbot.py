@@ -5,18 +5,19 @@ import vk_api as vk
 from dotenv import load_dotenv
 from vk_api.longpoll import VkLongPoll, VkEventType
 
-from create_api_key import authenticate_implicit_with_adc
-from utils import detect_intent_texts
+from utils import detect_intent_texts, authenticate_implicit_with_adc
 
 
-def echo(event, vk_api):
+def echo(event, vk_api, project_id):
 
-    message = detect_intent_texts('pacific-hybrid-245815', 123456789, event.text, 'ru')
+    session_id = event.user_id
+
+    message = detect_intent_texts(project_id, session_id, event.text, 'ru')
 
     if message.intent.is_fallback:
         vk_api.messages.send(
             user_id=event.user_id,
-            message="Я не могу понять ваш вопрос. Ждите оператора.",
+            message='Я не могу понять ваш вопрос. Ждите оператора.',
             random_id=random.randint(1, 1000)
         )
 
@@ -40,7 +41,7 @@ def main():
     longpoll = VkLongPoll(vk_session)
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            echo(event, vk_api)
+            echo(event, vk_api, project_id)
 
 
 if __name__ == "__main__":
