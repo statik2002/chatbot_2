@@ -1,72 +1,66 @@
 import logging
 import os
 import traceback
+from functools import partial
 
 from dotenv import load_dotenv
 from telegram import Update, ForceReply
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, \
+    MessageHandler, Filters, CallbackContext
 
-from utils import detect_intent_texts, authenticate_implicit_with_adc
+from utils import detect_intent_texts
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-)
 
 logger = logging.getLogger(__file__)
 
 
-def start(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    update.message.reply_markdown_v2(
-        fr'Здравствуйте {user.mention_markdown_v2()}\!',
-        reply_markup=ForceReply(selective=True),
-    )
-
-
-def help_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Help!')
-
-
-def echo(update: Update, context: CallbackContext) -> None:
+def message_answer(update: Update, context: CallbackContext, project_id, chat_id) -> None:
 
     session_id = update.message.from_user.id
 
-    message = detect_intent_texts(os.environ['GOOGLE_CLOUD_PROJECT_ID'], session_id, update.message.text, 'ru')
+    message = detect_intent_texts(
+        project_id,
+        session_id,
+        update.message.text,
+        'ru'
+    )
+
+    x = 100 / 0
 
     if message.intent.is_fallback:
-        update.message.reply_text('Я не могу понять ваш вопрос. Ждите ответ оператора.')
-        context.bot.send_message(os.environ['CHAT_ID'], text='Пиииу пиииу кря кря!. Пользователю из Telegram нужна помощь!')
-    else:
-        update.message.reply_text(message.fulfillment_text)
+        context.bot.send_message(
+            chat_id,
+            text='Пиииу пиииу кря кря!. Пользователю из Telegram нужна помощь!'
+        )
+
+    update.message.reply_text(message.fulfillment_text)
 
 
-def error_handler(update, context):
-
+def error_handler(update, context, chat_id):
     logger.error(msg='Ошибка при работе скрипта: ', exc_info=context.error)
-    error_list = traceback.format_exception(None, context.error, context.error.__traceback__)
-    errors_string = ''.join(error_list)
-
-    context.bot.send_message(os.environ['CHAT_ID'], text=errors_string)
+    context.bot.send_message(chat_id, text=traceback.format_exception())
 
 
 def main() -> None:
 
     load_dotenv()
     telegram_token = os.environ['TELEGRAM_TOKEN']
+    chat_id = os.environ['CHAT_ID']
     project_id = os.environ['GOOGLE_CLOUD_PROJECT_ID']
 
-    logger.setLevel(logging.WARNING)
-
-    authenticate_implicit_with_adc(project_id)
+    logging.basicConfig(level=logging.ERROR)
+    logger.setLevel(logging.DEBUG)
 
     updater = Updater(token=telegram_token)
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
-
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
-    dispatcher.add_error_handler(error_handler)
+    dispatcher.add_handler(
+        MessageHandler(
+            Filters.text & ~Filters.command,
+            partial(message_answer, project_id=project_id, chat_id=chat_id)
+        )
+    )
+    dispatcher.add_error_handler(partial(error_handler, chat_id=chat_id))
 
     updater.start_polling()
 

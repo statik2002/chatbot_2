@@ -11,7 +11,7 @@
 Создайте виртуальное окружение командой:
 
 ```commandline
-python3 -m env venv
+python3 -m venv env
 ```
 
 Войдите в виртуальное окружение командой:
@@ -23,6 +23,8 @@ source env/bin/activate
 ```commandline
 pip install -r requirements.txt
 ```
+
+Установите gcloud CLI по [иструкции](https://cloud.google.com/sdk/docs/install)
 
 Создайте проект в Google Cloud по [инструкции](https://cloud.google.com/dialogflow/es/docs/quick/setup)
 
