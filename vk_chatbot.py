@@ -7,24 +7,9 @@ import vk_api as vk
 from dotenv import load_dotenv
 from vk_api.longpoll import VkLongPoll, VkEventType
 
-from utils import detect_intent_texts
-
+from utils import detect_intent_texts, TelegramLogsHandler
 
 logger = logging.getLogger(__name__)
-
-
-class TelegramLogsHandler(logging.Handler):
-
-    def __init__(self, tg_bot, chat_id):
-        super().__init__()
-        self.chat_id = chat_id
-        self.tg_bot = tg_bot
-
-        self.tg_bot.send_message(chat_id=self.chat_id, text='VK бот запущен')
-
-    def emit(self, record):
-        log_entry = self.format(record)
-        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
 
 
 def message_answer(event, vk_api, project_id, bot, chat_id):
@@ -57,18 +42,14 @@ def main():
 
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(TelegramLogsHandler(bot, os.environ['CHAT_ID']))
+    logger.addHandler(TelegramLogsHandler(bot, chat_id))
 
-    try:
-        vk_session = vk.VkApi(token=vk_token)
-        vk_api = vk_session.get_api()
-        longpoll = VkLongPoll(vk_session)
-        for event in longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                message_answer(event, vk_api, project_id, bot, chat_id)
-
-    except Exception as warn:
-        logger.error(f'Error {warn}.')
+    vk_session = vk.VkApi(token=vk_token)
+    vk_api = vk_session.get_api()
+    longpoll = VkLongPoll(vk_session)
+    for event in longpoll.listen():
+        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+            message_answer(event, vk_api, project_id, bot, chat_id)
 
 
 if __name__ == "__main__":
