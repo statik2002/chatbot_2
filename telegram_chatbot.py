@@ -12,7 +12,7 @@ from utils import detect_intent_texts, TelegramLogsHandler
 logger = logging.getLogger(__file__)
 
 
-def message_answer(
+def answer_message(
         update: Update,
         context: CallbackContext,
         project_id,
@@ -52,7 +52,7 @@ def main() -> None:
     dispatcher.add_handler(
         MessageHandler(
             Filters.text & ~Filters.command,
-            partial(message_answer, project_id=project_id, chat_id=chat_id)
+            partial(answer_message, project_id=project_id, chat_id=chat_id)
         )
     )
     dispatcher.add_error_handler(error_handler)

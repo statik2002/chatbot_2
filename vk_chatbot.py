@@ -12,7 +12,7 @@ from utils import detect_intent_texts, TelegramLogsHandler
 logger = logging.getLogger(__name__)
 
 
-def message_answer(event, vk_api, project_id, bot, chat_id):
+def answer_message(event, vk_api, project_id, bot, chat_id):
 
     session_id = event.user_id
 
@@ -44,7 +44,7 @@ def main():
     longpoll = VkLongPoll(vk_session)
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            message_answer(event, vk_api, project_id, bot, chat_id)
+            answer_message(event, vk_api, project_id, bot, chat_id)
 
 
 if __name__ == "__main__":
