@@ -27,12 +27,6 @@ def message_answer(
         'ru'
     )
 
-    if message.intent.is_fallback:
-        context.bot.send_message(
-            chat_id,
-            text='Пиииу пиииу кря кря!. Пользователю из Telegram нужна помощь!'
-        )
-
     update.message.reply_text(message.fulfillment_text)
 
 

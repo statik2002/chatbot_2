@@ -18,17 +18,12 @@ def message_answer(event, vk_api, project_id, bot, chat_id):
 
     message = detect_intent_texts(project_id, session_id, event.text, 'ru')
 
-    if message.intent.is_fallback:
-        bot.send_message(
-            chat_id=chat_id,
-            text='Пиииу пиииу кря кря!. Пользователю из VK нужна помощь!'
+    if not message.intent.is_fallback:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=message.fulfillment_text,
+            random_id=random.randint(1, 1000)
         )
-
-    vk_api.messages.send(
-        user_id=event.user_id,
-        message=message.fulfillment_text,
-        random_id=random.randint(1, 1000)
-    )
 
 
 def main():
